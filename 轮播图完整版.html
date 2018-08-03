@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title></title>
+  <style type="text/css">
+    * {
+      padding: 0;
+      margin: 0;
+      list-style: none;
+      border: 0;
+    }
+
+    .all {
+      width: 500px;
+      height: 200px;
+      padding: 7px;
+      border: 1px solid #ccc;
+      margin: 100px auto;
+      position: relative;
+    }
+
+    .screen {
+      width: 500px;
+      height: 200px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .screen li {
+      width: 500px;
+      height: 200px;
+      overflow: hidden;
+      float: left;
+    }
+
+    .screen ul {
+      position: absolute;
+      left: 0;
+      top: 0px;
+      width: 3000px;
+    }
+
+    .all ol {
+      position: absolute;
+      right: 10px;
+      bottom: 10px;
+      line-height: 20px;
+      text-align: center;
+    }
+
+    .all ol li {
+      float: left;
+      width: 20px;
+      height: 20px;
+      background: #fff;
+      border: 1px solid #ccc;
+      margin-left: 10px;
+      cursor: pointer;
+    }
+
+    .all ol li.current {
+      background: yellow;
+    }
+
+    #arr {
+      display: none;
+    }
+
+    #arr span {
+      width: 40px;
+      height: 40px;
+      position: absolute;
+      left: 5px;
+      top: 50%;
+      margin-top: -20px;
+      background: #000;
+      cursor: pointer;
+      line-height: 40px;
+      text-align: center;
+      font-weight: bold;
+      font-family: '黑体';
+      font-size: 30px;
+      color: #fff;
+      opacity: 0.3;
+      border: 1px solid #fff;
+    }
+
+    #arr #right {
+      right: 5px;
+      left: auto;
+    }
+  </style>
+</head>
+<body>
+<div class="all" id='box'>
+  <div class="screen">
+    <ul>
+      <li><img src="images/images/1.jpg" width="500" height="200"/></li>
+      <li><img src="images/images/2.jpg" width="500" height="200"/></li>
+      <li><img src="images/images/3.jpg" width="500" height="200"/></li>
+      <li><img src="images/images/4.jpg" width="500" height="200"/></li>
+      <li><img src="images/images/5.jpg" width="500" height="200"/></li>
+    </ul>
+    <ol>
+      <!-- 动态创建的小方块，添加在这里，样式已经给写好了-->
+    </ol>
+  </div>
+  <div id="arr">
+    <span id="left">&lt;</span>
+    <span id="right">&gt;</span>
+  </div>
+</div>
+
+<script src="common.js"></script>
+<script>
+  //1.获取元素
+var box = document.getElementById("box");
+var screen = box.children[0];
+var moveWidth = screen.offsetWidth;
+
+var ul = screen.children[0];
+var ulli = ul.children;
+var ol = screen.children[1];
+
+var arr = document.getElementById("arr");
+var arrLeft = document.getElementById("left");
+var arrRight = document.getElementById("right");
+
+
+  //2.根据图片的个数,生成右下角点击的小按钮(li)
+for(var i = 0 ; i < ulli.length ; i++){
+	var olli = document.createElement("li");
+	olli.innerHTML = i+1;
+	ol.appendChild(olli);
+}
+  //3.把ol中的第一个li(右下角第一个按钮)背景色默认为黄色.
+var ollis = ol.children;
+ollis[0].setAttribute("class","current");
+
+  //4.鼠标移入移出显示左右焦点
+box.onmouseover = function () {
+  arr.style.display="block";
+  //9.1 鼠标移入,停止自动轮播
+  clearInterval(timerId);
+}
+  box.onmouseout = function () {
+    arr.style.display="none";
+    //9.2 鼠标移出,继续自动轮播
+    timerId = setInterval(nextImg,2000);
+  }
+
+
+  //5.循环遍历 右下角的小按钮们
+for(var i = 0 ; i < ollis.length ; i++){
+  //5.1 给每一个右下角的小按钮们 设置一个index索引值.
+	ollis[i].setAttribute("index",i);
+  //5.2 给右下角的小按钮们,分别设置点击事件
+  ollis[i].onclick = function () {
+    for(var j = 0 ; j < ollis.length; j++){
+      //5.3 颜色排他(所有的去掉class类)
+      ollis[j].removeAttribute("class");
+    }
+    //5.4 自己的颜色要设置
+    this.setAttribute("class","current");
+    //5.5 根据当前自己的index值,和移动的单位宽,计算移动的目标target
+    var target = -this.getAttribute("index") * moveWidth;
+    //5.6 调用封装的animate函数.
+    moveLeft(target,10,10,ul);
+    //8.让picIndex和liIndex,等于当前这个按钮的index值.
+    imgIndex = liIndex = this.getAttribute("index");
+    console.log(imgIndex);
+  }
+}
+
+
+  //6.1 声明一个变量,用来记录图片滚出去的张数.
+  var imgIndex = 0
+
+  //6.8 声明一个变量,记录当前"滚出去"的小按钮的个数.
+  var liIndex = 0;
+  //6.2 给ul中,再添加一张图片(第一张图片深克隆的)
+  ul.appendChild(ulli[0].cloneNode(true));
+  //6.给右边焦点设置单击事件
+  arrRight.onclick = function () {
+nextImg();
+}
+function nextImg() {
+  //6.3 判断,如果picIndex的是5,就表示你当前是克隆的那一张,所以就要回到真正的第一张
+  if(imgIndex == 5){
+    //瞬间回到第一张.直接修改他的left值.
+    //真正第一张的话,就说明没有图片滚出去,picIndex就应该是0
+    ul.style.left = "0px";
+    imgIndex = 0;
+  }
+  //6.4 用户的感觉是第一张(克隆的那一张),点击了右焦点,就要向后显示第二张.
+  imgIndex++;
+  console.log(imgIndex);
+  //6.5 根据当前的picIndex计算目标
+  var targat = -imgIndex * moveWidth;
+  //6.6 调用封装的animate函数.
+  moveLeft(targat,10,10,ul);
+  //6.7 右下角那些小按钮的颜色,排他思想
+  for(var i = 0 ; i < ollis.length; i++){
+    ollis[i].removeAttribute("class");
+  }
+  //6.8 对应的小按钮,设置颜色
+  //点击右边焦点,小按钮对应的索引加加
+  //如果小按钮对应的索引是5,说明现在是克隆那一张,给用户的感觉是第一张,所以要设置liIndex的值为0.
+  liIndex++;
+  if(liIndex == 5){
+    liIndex = 0;
+  }
+  ollis[liIndex].setAttribute("class","current");
+}
+
+  //把右边焦点单击事件代码封装成一个函数.
+  //7.给左边焦点设置一个点击事件
+ arrLeft.onclick = function () {
+   //7.1 如果当前是第一张,点击左边焦点,就要瞬间回到克隆那一张(给用户的感觉没有变);
+if(imgIndex == 0){
+ul.style.left = -5 * moveWidth+"px";
+imgIndex = 5;
+}
+   //7.2 在第一张的时候,点击左边焦点,就是要到第五张.
+imgIndex--;
+   //7.3 计算目标
+var target = -imgIndex * moveWidth;
+   //7.4 调用animate函数
+moveLeft(target,10,10,ul);
+   //7.5 右下角的那些小按钮们颜色排他
+for(var i = 0 ; i < ollis.length; i++){
+ollis[i].removeAttribute("class");
+}
+   //7.6 对应的小按钮设置颜色
+liIndex--;
+if(liIndex < 0){
+liIndex = 4;
+}
+ollis[liIndex].setAttribute("class","current");
+ }
+
+  //9.自动轮播思路(间隔一段时间,执行一次右边焦点单击事件.)
+var timerId = setInterval(nextImg,2000);
+</script>
+
+</body>
+</html>
