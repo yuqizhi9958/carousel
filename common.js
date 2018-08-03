@@ -44,7 +44,7 @@ function nextPic() {
 
 
 /**
- * 封装的动画函数
+ * 封装的动画函数！
  * @param target 目标位置
  * @param ele 移动的元素
  */
